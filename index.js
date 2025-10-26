@@ -12,10 +12,13 @@ const PORT = process.env.PORT || 5000;
 // ------------------ MIDDLEWARE ------------------
 app.use(
   cors({
+    // IMPORTANT: In production, the origin MUST be set to your deployed frontend URL (e.g., https://buildezy.vercel.app)
+    // For development, we allow local origins.
     origin: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "http://192.168.1.10:5173", // ✅ updated to your actual LAN IP
+      "http://192.168.1.10:5173",
+      // Add your deployed frontend URL here after deployment
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -24,12 +27,15 @@ app.use(
 app.use(express.json());
 
 // ------------------ DATABASE ------------------
+// Production Ready: Use DATABASE_URL provided by Render/Railway. 
+// Fallback to individual variables for local testing, but deployment relies on the connectionString.
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  connectionString: process.env.DATABASE_URL,
+  
+  // REQUIRED FOR DEPLOYMENT: Render/Railway/Heroku requires SSL for external connections
+  ssl: process.env.DATABASE_URL ? {
+    rejectUnauthorized: false
+  } : false, // Only use SSL if DATABASE_URL is set (i.e., in production)
 });
 
 pool
@@ -139,7 +145,7 @@ app.get("/api/enquiries", async (req, res) => {
   }
 });
 
-// ✅ DELETE enquiry by ID (added route)
+// DELETE enquiry by ID
 app.delete("/api/enquiries/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -161,7 +167,7 @@ app.delete("/api/enquiries/:id", async (req, res) => {
 });
 
 // ------------------ START SERVER ------------------
-// ✅ Key fix: bind to 0.0.0.0 (makes it reachable from other devices)
+// Bind to 0.0.0.0 for external access in production environments
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`⚡ Server running on http://localhost:${PORT}`);
   console.log(`🌐 Accessible on LAN: http://192.168.1.10:${PORT}`);
