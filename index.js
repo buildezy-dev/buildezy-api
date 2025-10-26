@@ -13,12 +13,13 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     // IMPORTANT: In production, the origin MUST be set to your deployed frontend URL (e.g., https://buildezy.vercel.app)
-    // For development, we allow local origins.
+    // CRITICAL FIX: Add your custom deployed domain to the whitelist
     origin: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://192.168.1.10:5173",
-      // Add your deployed frontend URL here after deployment
+      "https://buildezyservices.sbs", // ✅ FIX: Added custom domain for CORS
+      // Add your deployed Vercel URL here if you use the Vercel subdomain (e.g., https://buildezy-frontend.vercel.app)
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
