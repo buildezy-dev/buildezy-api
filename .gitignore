@@ -1,0 +1,12 @@
+dependencies and logs
+
+/node_modules
+npm-debug.log*
+
+# production artifacts
+/dist
+/build
+
+# environment secrets
+.env
+.env.local
