@@ -17,14 +17,16 @@ app.use(
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://192.168.1.10:5173",
-      "https://buildezyservices.sbs",           // main domain
-      "https://www.buildezyservices.sbs",       // www version
-      "https://buildezy-frontend.vercel.app"    // Vercel fallback
+      "https://buildezyservices.sbs", // main domain
+      "https://www.buildezyservices.sbs", // www version
+      "https://buildezy-frontend.vercel.app", // old fallback
+      "https://buildezy-frontend-qyjfzm8aq-buildezy-devs-projects.vercel.app", // ✅ NEW vercel build domain
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 // ------------------ DATABASE ------------------
