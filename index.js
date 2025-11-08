@@ -10,23 +10,28 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ------------------ MIDDLEWARE ------------------
+
+// ✅ Improved dynamic CORS to handle preflight + HTTPS domains properly
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://192.168.1.10:5173",
+  "https://buildezyservices.sbs", // main custom domain
+  "https://www.buildezyservices.sbs", // www version
+  "https://buildezy-frontend.vercel.app", // old Vercel URL
+  "https://buildezy-frontend-o9sypvabb-buildezy-devs-projects.vercel.app", // new Vercel build URL
+];
+
+app.use((req, res, next) => {
+  console.log("➡️ Incoming request:", req.method, req.headers.origin, req.path);
+  next();
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      const allowedOrigins = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://192.168.1.10:5173",
-        "https://buildezyservices.sbs", // main domain
-        "https://www.buildezyservices.sbs", // www version
-        "https://buildezy-frontend.vercel.app", // old fallback
-        "https://buildezy-frontend-qyjfzm8aq-buildezy-devs-projects.vercel.app", // Vercel build domain
-      ];
-
-      // Allow requests without an origin (like mobile/curl)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
+      // Allow requests from allowed origins or tools without origin (Postman, cURL)
+      if (!origin || allowedOrigins.includes(origin)) {
         console.log("✅ Allowed CORS request from:", origin);
         callback(null, true);
       } else {
@@ -35,9 +40,13 @@ app.use(
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+// ✅ Ensure preflight (OPTIONS) requests are handled
+app.options("*", cors());
 
 app.use(express.json());
 
@@ -60,7 +69,6 @@ app.get("/", (req, res) => {
 });
 
 // ------------------ VENDORS ------------------
-// Add new vendor
 app.post("/api/vendors", async (req, res) => {
   const { name, email, mobile, service, description } = req.body;
   try {
@@ -75,7 +83,6 @@ app.post("/api/vendors", async (req, res) => {
   }
 });
 
-// Get all vendors
 app.get("/api/vendors", async (req, res) => {
   try {
     const result = await pool.query(
@@ -83,11 +90,11 @@ app.get("/api/vendors", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
+    console.error("❌ Vendor fetch error:", err.message);
     res.status(500).json({ error: "Server error while fetching vendors" });
   }
 });
 
-// Delete vendor by ID
 app.delete("/api/vendors/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -107,7 +114,6 @@ app.delete("/api/vendors/:id", async (req, res) => {
   }
 });
 
-// Update vendor by ID
 app.put("/api/vendors/:id", async (req, res) => {
   const { id } = req.params;
   const { name, email, mobile, service, description } = req.body;
@@ -126,7 +132,6 @@ app.put("/api/vendors/:id", async (req, res) => {
 });
 
 // ------------------ ENQUIRIES ------------------
-// Add new enquiry
 app.post("/api/enquiries", async (req, res) => {
   const { name, email, mobile, message } = req.body;
   try {
@@ -141,7 +146,6 @@ app.post("/api/enquiries", async (req, res) => {
   }
 });
 
-// Get all enquiries
 app.get("/api/enquiries", async (req, res) => {
   try {
     const result = await pool.query(
@@ -154,7 +158,6 @@ app.get("/api/enquiries", async (req, res) => {
   }
 });
 
-// DELETE enquiry by ID
 app.delete("/api/enquiries/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -164,7 +167,6 @@ app.delete("/api/enquiries/:id", async (req, res) => {
     );
     if (result.rowCount === 0)
       return res.status(404).json({ error: "Enquiry not found" });
-
     res.json({
       message: "Enquiry deleted successfully",
       enquiry: result.rows[0],
