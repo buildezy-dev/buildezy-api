@@ -11,15 +11,14 @@ const PORT = process.env.PORT || 5000;
 
 // ------------------ MIDDLEWARE ------------------
 
-// ✅ Improved dynamic CORS to handle preflight + HTTPS domains properly
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://192.168.1.10:5173",
-  "https://buildezyservices.sbs", // main domain
+  "https://buildezyservices.sbs", // main custom domain
   "https://www.buildezyservices.sbs", // www version
-  "https://buildezy-frontend.vercel.app", // old vercel
-  "https://buildezy-frontend-o9sypvabb-buildezy-devs-projects.vercel.app", // new vercel
+  "https://buildezy-frontend.vercel.app", // old vercel URL
+  "https://buildezy-frontend-o9sypvabb-buildezy-devs-projects.vercel.app", // new vercel URL
 ];
 
 app.use((req, res, next) => {
@@ -44,8 +43,8 @@ app.use(
   })
 );
 
-// ✅ FIX: Express 5 requires `/*` instead of `*` for preflight handling
-app.options("/*", cors());
+// ✅ Express 5 fix: regex for preflight (CORS)
+app.options(/.*/, cors());
 
 app.use(express.json());
 
