@@ -16,10 +16,10 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://192.168.1.10:5173",
-  "https://buildezyservices.sbs", // main custom domain
+  "https://buildezyservices.sbs", // main domain
   "https://www.buildezyservices.sbs", // www version
-  "https://buildezy-frontend.vercel.app", // old Vercel URL
-  "https://buildezy-frontend-o9sypvabb-buildezy-devs-projects.vercel.app", // new Vercel build URL
+  "https://buildezy-frontend.vercel.app", // old vercel
+  "https://buildezy-frontend-o9sypvabb-buildezy-devs-projects.vercel.app", // new vercel
 ];
 
 app.use((req, res, next) => {
@@ -30,7 +30,6 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests from allowed origins or tools without origin (Postman, cURL)
       if (!origin || allowedOrigins.includes(origin)) {
         console.log("✅ Allowed CORS request from:", origin);
         callback(null, true);
@@ -45,8 +44,8 @@ app.use(
   })
 );
 
-// ✅ Ensure preflight (OPTIONS) requests are handled
-app.options("*", cors());
+// ✅ FIX: Express 5 requires `/*` instead of `*` for preflight handling
+app.options("/*", cors());
 
 app.use(express.json());
 
