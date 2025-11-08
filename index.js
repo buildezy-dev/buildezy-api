@@ -12,17 +12,29 @@ const PORT = process.env.PORT || 5000;
 // ------------------ MIDDLEWARE ------------------
 app.use(
   cors({
-    // ✅ Allowed origins: local + production (with HTTPS)
-    origin: [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-      "http://192.168.1.10:5173",
-      "https://buildezyservices.sbs", // main domain
-      "https://www.buildezyservices.sbs", // www version
-      "https://buildezy-frontend.vercel.app", // old fallback
-      "https://buildezy-frontend-qyjfzm8aq-buildezy-devs-projects.vercel.app", // ✅ NEW vercel build domain
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://192.168.1.10:5173",
+        "https://buildezyservices.sbs", // main domain
+        "https://www.buildezyservices.sbs", // www version
+        "https://buildezy-frontend.vercel.app", // old fallback
+        "https://buildezy-frontend-qyjfzm8aq-buildezy-devs-projects.vercel.app", // Vercel build domain
+      ];
+
+      // Allow requests without an origin (like mobile/curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        console.log("✅ Allowed CORS request from:", origin);
+        callback(null, true);
+      } else {
+        console.warn("🚫 Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
@@ -32,9 +44,7 @@ app.use(express.json());
 // ------------------ DATABASE ------------------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
 });
 
 pool
