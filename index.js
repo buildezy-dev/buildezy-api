@@ -12,14 +12,14 @@ const PORT = process.env.PORT || 5000;
 // ------------------ MIDDLEWARE ------------------
 app.use(
   cors({
-    // IMPORTANT: In production, the origin MUST be set to your deployed frontend URL (e.g., https://buildezy.vercel.app)
-    // CRITICAL FIX: Add your custom deployed domain to the whitelist
+    // ✅ Allowed origins: local + production (with HTTPS)
     origin: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://192.168.1.10:5173",
-      "https://buildezyservices.sbs", // ✅ FIX: Added custom domain for CORS
-      // Add your deployed Vercel URL here if you use the Vercel subdomain (e.g., https://buildezy-frontend.vercel.app)
+      "https://buildezyservices.sbs",           // main domain
+      "https://www.buildezyservices.sbs",       // www version
+      "https://buildezy-frontend.vercel.app"    // Vercel fallback
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -28,15 +28,11 @@ app.use(
 app.use(express.json());
 
 // ------------------ DATABASE ------------------
-// Production Ready: Use DATABASE_URL provided by Render/Railway. 
-// Fallback to individual variables for local testing, but deployment relies on the connectionString.
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  
-  // REQUIRED FOR DEPLOYMENT: Render/Railway/Heroku requires SSL for external connections
-  ssl: process.env.DATABASE_URL ? {
-    rejectUnauthorized: false
-  } : false, // Only use SSL if DATABASE_URL is set (i.e., in production)
+  ssl: process.env.DATABASE_URL
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 pool
@@ -168,7 +164,6 @@ app.delete("/api/enquiries/:id", async (req, res) => {
 });
 
 // ------------------ START SERVER ------------------
-// Bind to 0.0.0.0 for external access in production environments
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`⚡ Server running on http://localhost:${PORT}`);
   console.log(`🌐 Accessible on LAN: http://192.168.1.10:${PORT}`);
